@@ -1,9 +1,13 @@
+// программа, которая работает с базой данных в виде типизированного файла. Код программы поддерживает модульный принцип разработки
+
+//в файле реализованы основная структура программы, меню, а также основная функция main.
+
 #include<iostream>
 #include<stdio.h>
 #include<string.h>
 #include"main.h"
 #include"rw.h"
-#include"File3.h"
+#include"data.h"
 
 using namespace std;
 
