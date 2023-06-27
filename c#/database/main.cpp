@@ -1,7 +1,7 @@
 #include<iostream>
 #include<stdio.h>
 #include<string.h>
-#include"File1.h"
+#include"main.h"
 #include"File2.h"
 #include"File3.h"
 
