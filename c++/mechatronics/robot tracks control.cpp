@@ -3,6 +3,7 @@
 //С помощью потенциометра можно было задать не только скважность импульсов, но и направление движения.
 
 #include <xc.h>
+#include <xc.h>
 #define FOSC 7370000ULL
 #define FCY (FOSC / 2)
 
@@ -81,21 +82,17 @@ void LCDInit(void)
     LCDSend(LCD_ADRESS, LCD_CLEAR,COMMAND);
 }
 
-void LCDPrintStr(char* str, uint16_t len)
-{
+void LCDPrintStr(char* str, uint16_t len){
     uint16_t i;
-    for(i=0;i<len;i++)
-    {
+    for(i=0;i<len;i++){
         LCDSend(LCD_ADRESS, str[i],DATA);
     }
 }
-
-void LCDPrintInt(int number) {
+void LCDPrintInt(int number){
     int i;
     char *str[10]={"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"}; 
     char *num[5];
-    for(i=0; i<5;i++) 
-    {
+    for(i=0; i<5;i++) {
         num[i]=str[number%10]; 
         number=number/10; 
     }
@@ -103,19 +100,17 @@ void LCDPrintInt(int number) {
     for(i=6; i > 1;i--) LCDPrintStr(num[i-2],1); 
 }
 
-void Adc_init(char i)
-{
+void Adc_init(char i){
     AD1CON1bits.AD12B=1; // 12-битный режим
     AD1CON2bits.VCFG=0;
     AD1CON1bits.FORM=0; // беззнаковое целое
     AD1CON1bits.ADON=1; // работа модуля АЦП
-    AD1CON4bits.ADDMAEN=1; // определяет, как заполняются результаты преобразования в области оперативной памяти DMA(в порядке преобразования)
+    AD1CON4bits.ADDMAEN=1; // определяет, как заполняются результаты преобразования в области оперативной памяти DMA
     AD1CHS0bits.CH0SA=i;//ANi
     AD1CHS0bits.CH0NA=0;// Отрицательный вход канала VREF
 }
 
-int read_Adc()
-{
+int read_Adc(){
     AD1CON1bits.SAMP=1; //запуск выборки
     __delay_ms(5);
     AD1CON1bits.SAMP=0; //запуск преобразования
@@ -123,8 +118,7 @@ int read_Adc()
     return ADC1BUF0;
 }
 
-void PWM_Init( void )
-{
+void PWM_Init( void ){
     RPOR0bits.RP35R = 0b010000;
     RPOR2bits.RP39R = 0b010001;
     ANSELBbits.ANSB3 = 0;
@@ -140,44 +134,39 @@ void PWM_Init( void )
 
 int main(int argc, char** argv)
 {
-    unsigned int a, port = 7;
+    unsigned int a, b;
     const int limit = 800;
-    
     initI2C();
     LCDInit();
     PWM_Init();
     __delay_ms(30);
     OC2R = 1500;
-    
     TRISBbits.TRISB4 = 0;
     TRISFbits.TRISF1 = 0;
     LATBbits.LATB4 = 1;
     LATFbits.LATF1 = 0;
     
     while(1){
-        if (port == 7) {
-            Adc_init(7);
-            a = read_Adc();
+        Adc_init(7);
+        a = read_Adc();
+        Adc_init(8);
+        b = read_Adc();
+        if (a){
             LCDPrintInt(a);
             __delay_ms(500);
             LCDSend(LCD_ADRESS, LCD_CLEAR, COMMAND);
             if (a < limit) OC2R = limit;
             else OC2R = a;
-            port = 8;
+            
         }
-        if (port == 8) {
-            Adc_init(8);
-            a = read_Adc();
-            if (a > 2000) {
+        if (b > 2000) {
                 LATBbits.LATB4 = 0;
                 LATFbits.LATF1 = 1;
             }
-            else {
+        if (b < 2000) {
                 LATBbits.LATB4 = 1;
                 LATFbits.LATF1 = 0;
             }
-            port = 7;
-        }
     }
     return(EXIT_SUCCESS);
 }
